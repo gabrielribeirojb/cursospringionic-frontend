@@ -18,7 +18,7 @@ export class ProfilePage {
   cameraOn: boolean = false;
 
   constructor(
-    public navCtrl: NavController, 
+    public navCtrl: NavController,
     public navParams: NavParams,
     public storage: StorageService,
     public clienteService: ClienteService,
@@ -29,7 +29,7 @@ export class ProfilePage {
     this.loadData();
   }
 
-  loadData(){
+  loadData() {
     let localUser = this.storage.getLocalUser();
     if (localUser && localUser.email) {
       this.clienteService.findByEmail(localUser.email)
@@ -37,11 +37,11 @@ export class ProfilePage {
           this.cliente = response as ClienteDTO;
           this.getImageIfExists();
         },
-        error => {
-          if (error.status == 403) {
-            this.navCtrl.setRoot('HomePage');
-          }
-        });
+          error => {
+            if (error.status == 403) {
+              this.navCtrl.setRoot('HomePage');
+            }
+          });
     }
     else {
       this.navCtrl.setRoot('HomePage');
@@ -50,10 +50,10 @@ export class ProfilePage {
 
   getImageIfExists() {
     this.clienteService.getImageFromBucket(this.cliente.id)
-    .subscribe(response => {
-      this.cliente.imageUrl = `${API_CONFIG.bucketBaseUrl}/cp${this.cliente.id}.jpg`;
-    },
-    error => {});
+      .subscribe(response => {
+        this.cliente.imageUrl = `${API_CONFIG.bucketBaseUrl}/cp${this.cliente.id}.jpg`;
+      },
+        error => { });
   }
 
   getCameraPicture() {
@@ -66,24 +66,44 @@ export class ProfilePage {
       encodingType: this.camera.EncodingType.PNG,
       mediaType: this.camera.MediaType.PICTURE
     }
-    
+
     this.camera.getPicture(options).then((imageData) => {
-     this.picture = 'data:image/png;base64,' + imageData;
-     this.cameraOn = false;
+      this.picture = 'data:image/png;base64,' + imageData;
+      this.cameraOn = false;
     }, (err) => {
     });
   }
 
-  sendPicture(){
+  getGalleryPicture() {
+
+    this.cameraOn = true;
+
+    const options: CameraOptions = {
+      quality: 100,
+      sourceType: this.camera.PictureSourceType.PHOTOLIBRARY,
+      destinationType: this.camera.DestinationType.DATA_URL,
+      encodingType: this.camera.EncodingType.PNG,
+      mediaType: this.camera.MediaType.PICTURE
+    }
+
+    this.camera.getPicture(options).then((imageData) => {
+      this.picture = 'data:image/png;base64,' + imageData;
+      this.cameraOn = false;
+    }, (err) => {
+    });
+  }
+
+  sendPicture() {
     this.clienteService.uploadPicture(this.picture)
-    .subscribe(response => {
-      this.picture = null;
-      this.loadData();
-    } , error => {})
+      .subscribe(response => {
+        this.picture = null;
+        this.loadData();
+      },
+        error => {
+        });
   }
 
   cancel() {
     this.picture = null;
   }
-  
 }
